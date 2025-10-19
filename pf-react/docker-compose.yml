@@ -1,0 +1,50 @@
+version: '3.8'
+
+services:
+  portfolio:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: portfolio-frontend
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      # Mount SSL certificates from host (recommended for production)
+      # Comment out if certificates are baked into the image
+      - /etc/letsencrypt/live/vladplk.mysmarttech.fr/fullchain.pem:/etc/letsencrypt/live/vladplk.mysmarttech.fr/fullchain.pem:ro
+      - /etc/letsencrypt/live/vladplk.mysmarttech.fr/privkey.pem:/etc/letsencrypt/live/vladplk.mysmarttech.fr/privkey.pem:ro
+      - /etc/letsencrypt/live/vladplk.mysmarttech.fr/chain.pem:/etc/letsencrypt/live/vladplk.mysmarttech.fr/chain.pem:ro
+      
+      # Optionally mount nginx logs for debugging
+      # - ./logs/nginx:/var/log/nginx
+    
+    networks:
+      - portfolio-network
+    
+    # Health check
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    
+    # Security options
+    security_opt:
+      - no-new-privileges:true
+    
+    # Resource limits (adjust based on your server)
+    deploy:
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 512M
+        reservations:
+          cpus: '0.25'
+          memory: 128M
+
+networks:
+  portfolio-network:
+    driver: bridge
