@@ -13,11 +13,7 @@ WORKDIR /app
 COPY package*.json ./
 
 # Install dependencies with clean install for reproducible builds
-RUN if [ -f package-lock.json ]; then \
-        npm ci --prefer-offline --no-audit --progress=false --omit=dev; \
-    else \
-        npm install --no-progress --no-audit --omit=dev; \
-    fi
+RUN npm install --no-progress --no-audit
 
 # Copy source files
 COPY . .
@@ -42,8 +38,11 @@ RUN apk upgrade --no-cache && \
              /var/cache/nginx/fastcgi_temp \
              /var/cache/nginx/uwsgi_temp \
              /var/cache/nginx/scgi_temp && \
+    # Create directory for PID file with proper permissions
+    mkdir -p /var/run/nginx && \
     # Set proper permissions
     chown -R nginx:nginx /var/cache/nginx && \
+    chown -R nginx:nginx /var/run/nginx && \
     chown -R nginx:nginx /usr/share/nginx/html && \
     chown -R nginx:nginx /etc/nginx/conf.d && \
     # Remove default config
@@ -58,15 +57,13 @@ RUN mkdir -p /etc/letsencrypt/live/vladplk.mysmarttech.fr && \
 
 # Copy SSL certs from build context (optional - can be mounted via volumes instead)
 # If using volumes in docker-compose, comment out these lines
-COPY --chown=nginx:nginx certs/fullchain.pem /etc/letsencrypt/live/vladplk.mysmarttech.fr/fullchain.pem
-COPY --chown=nginx:nginx certs/privkey.pem /etc/letsencrypt/live/vladplk.mysmarttech.fr/privkey.pem
-COPY --chown=nginx:nginx certs/chain.pem /etc/letsencrypt/live/vladplk.mysmarttech.fr/chain.pem
+# COPY --chown=nginx:nginx certs/fullchain.pem /etc/letsencrypt/live/vladplk.mysmarttech.fr/fullchain.pem
+# COPY --chown=nginx:nginx certs/privkey.pem /etc/letsencrypt/live/vladplk.mysmarttech.fr/privkey.pem
+# COPY --chown=nginx:nginx certs/chain.pem /etc/letsencrypt/live/vladplk.mysmarttech.fr/chain.pem
 
 # Copy custom nginx configuration
 COPY --chown=nginx:nginx nginx.conf /etc/nginx/conf.d/default.conf
 
-# Verify configuration is valid
-RUN nginx -t
 
 # Health check
 HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
@@ -77,11 +74,8 @@ LABEL maintainer="Vladimir Polojienko <leonpolo365@gmail.com>"
 LABEL description="Production-ready React Portfolio with nginx"
 LABEL version="1.0"
 
-# Switch to non-root user
-USER nginx
-
 # Expose ports
 EXPOSE 80 443
 
-# Use nginx directly (already runs as PID 1 properly in this image)
+# Use nginx directly (runs as root to bind to privileged ports, but worker processes run as nginx user)
 CMD ["nginx", "-g", "daemon off;"]
