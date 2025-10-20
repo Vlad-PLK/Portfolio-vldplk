@@ -7,21 +7,13 @@ services:
       dockerfile: Dockerfile
     container_name: portfolio-frontend
     restart: unless-stopped
-    ports:
-      - "80:80"
-      - "443:443"
-    volumes:
-      # Mount SSL certificates from host (recommended for production)
-      # Comment out if certificates are baked into the image
-      - /etc/letsencrypt/live/vladplk.mysmarttech.fr/fullchain.pem:/etc/letsencrypt/live/vladplk.mysmarttech.fr/fullchain.pem:ro
-      - /etc/letsencrypt/live/vladplk.mysmarttech.fr/privkey.pem:/etc/letsencrypt/live/vladplk.mysmarttech.fr/privkey.pem:ro
-      - /etc/letsencrypt/live/vladplk.mysmarttech.fr/chain.pem:/etc/letsencrypt/live/vladplk.mysmarttech.fr/chain.pem:ro
-      
-      # Optionally mount nginx logs for debugging
-      # - ./logs/nginx:/var/log/nginx
+    # NO ports exposed - accessed via main proxy only
+    expose:
+      - "80"
+    # No SSL certificates needed - handled by main proxy
     
     networks:
-      - portfolio-network
+      - nginx-proxy-network  # Connect to main proxy network
     
     # Health check
     healthcheck:
@@ -46,5 +38,5 @@ services:
           memory: 128M
 
 networks:
-  portfolio-network:
-    driver: bridge
+  nginx-proxy-network:
+    external: true  # Use the external proxy network
