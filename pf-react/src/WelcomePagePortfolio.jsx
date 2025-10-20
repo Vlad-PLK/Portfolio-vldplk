@@ -229,7 +229,7 @@ function WelcomePagePortfolio() {
   const [uptime, setUptime] = useState({ days: 0, hours: 0, minutes: 0 });
 
   useEffect(() => {
-    const startTime = Date.now();
+    const startTime = new Date('2025-10-16T07:00:00').getTime();
     const interval = setInterval(() => {
       const elapsed = Date.now() - startTime;
       setUptime({
