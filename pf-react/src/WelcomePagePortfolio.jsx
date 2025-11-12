@@ -280,7 +280,7 @@ function WelcomePagePortfolio() {
       tech: ["React", "Django", "Three.js"],
       ports: "8000:8000",
       uptime: "18h",
-      link: "https://github.com/Vlad-PLK/Transcendence",
+      link: "https://github.com/Vlad-PLK/Transcandence",
     },
     {
       id: "c9a1f3d5",
