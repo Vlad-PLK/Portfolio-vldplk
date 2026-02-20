@@ -25,15 +25,10 @@ services:
     security_opt:
       - no-new-privileges:true
     
-    # Resource limits (adjust based on your server)
     deploy:
       resources:
         limits:
-          cpus: '1.0'
-          memory: 512M
-        reservations:
-          cpus: '0.25'
-          memory: 128M
+          memory: 256M
 
 networks:
   nginx-proxy-network:
